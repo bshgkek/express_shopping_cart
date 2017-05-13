@@ -15,6 +15,8 @@ userSchema.methods.encryptPassword = function(password) {
 
 // check if pw matches stored/hashed pw
 userSchema.methods.validPassword = function(password) {
+	console.log(typeof password)
+	console.log(typeof this.password)
 	return bcrypt.compareSync(password, this.password);	
 };
 

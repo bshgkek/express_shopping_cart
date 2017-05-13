@@ -76,7 +76,7 @@ passport.use('local.signin', new LocalStrategy({
 		if(!user) {
 			return done(null, false, {message: 'Invalid email or password.'});
 		}
-		if(!user.validPassword()) {
+		if(!user.validPassword(password)) {
 			return done(null, false, {message: 'Invalid email or password.'});
 		}
 		return done(null, user);

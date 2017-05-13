@@ -16,6 +16,7 @@ var validator = require('express-validator');
 
 var credentials = require('./credentials');
 var routes = require('./routes/index');
+var userRoutes = require('./routes/user');
 
 
 
@@ -48,6 +49,16 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// if logged in, set global variable 
+app.use(function(req, res, next) {
+  // isAuthenticated provided by passport
+  res.locals.login = req.isAuthenticated();
+  next();
+});
+
+// other routes have to be before '/' 
+// everything matches '/' and userRoutes wouldnt get used
+app.use('/user', userRoutes);
 app.use('/', routes);
 
 // catch 404 and forward to error handler
