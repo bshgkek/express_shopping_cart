@@ -6,14 +6,12 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var expressHbs = require('express-handlebars');
 var mongoose = require('mongoose');
-
 var session = require('express-session');
 var passport = require('passport');
 var flash = require('connect-flash');
-
 var validator = require('express-validator');
-
-
+// has to be req after session
+var mongoStore = require('connect-mongo')(session);
 var credentials = require('./credentials');
 var routes = require('./routes/index');
 var userRoutes = require('./routes/user');
@@ -42,7 +40,15 @@ app.use(bodyParser.urlencoded({ extended: false }));
 // bc it requires a parsed body in order to validate it
 app.use(validator());
 app.use(cookieParser());
-app.use(session({secret: credentials.sessionSecret, resave: false, saveUninitialized: false }));
+app.use(session({
+  secret: credentials.sessionSecret, 
+  resave: false, 
+  saveUninitialized: false,
+  store: new mongoStore({ mongooseConnection: mongoose.connection }),
+  // set to 3 hours, maxAge expects value in miliseconds
+  cookie: {maxAge: 3 * 60 * 60 * 1000 }
+
+}));
 // flash needs to be initialized after session, bc flash uses session to store messages
 app.use(flash());
 app.use(passport.initialize());
@@ -53,6 +59,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(function(req, res, next) {
   // isAuthenticated provided by passport
   res.locals.login = req.isAuthenticated();
+  res.locals.session = req.session;
   next();
 });
 
