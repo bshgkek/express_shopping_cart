@@ -7,14 +7,25 @@ var bodyParser = require('body-parser');
 var expressHbs = require('express-handlebars');
 var mongoose = require('mongoose');
 
+var session = require('express-session');
+var passport = require('passport');
+var flash = require('connect-flash');
+
+var validator = require('express-validator');
+
+
+var credentials = require('./credentials');
 var routes = require('./routes/index');
+
+
 
 var app = express();
 
 
 mongoose.connect('localhost:27017/shopping');
 
-
+// runs through passport.js and runs code
+require('./config/passport');
 
 
 // view engine setup
@@ -26,7 +37,15 @@ app.set('view engine', '.hbs');
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
+// express-validator must be started after body parser 
+// bc it requires a parsed body in order to validate it
+app.use(validator());
 app.use(cookieParser());
+app.use(session({secret: credentials.sessionSecret, resave: false, saveUninitialized: false }));
+// flash needs to be initialized after session, bc flash uses session to store messages
+app.use(flash());
+app.use(passport.initialize());
+app.use(passport.session());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', routes);
